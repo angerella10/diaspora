@@ -48,6 +48,12 @@ class StreamsController < ApplicationController
     stream_responder(Stream::FollowedTag)
   end
 
+  def mention
+  end
+
+  def message
+  end
+
   private
 
   def stream_responder(stream_klass=nil)

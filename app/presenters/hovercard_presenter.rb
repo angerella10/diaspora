@@ -31,6 +31,31 @@ class HovercardPresenter
     person.image_url("thumb_#{size}".to_sym)
   end
 
+  def mention
+    if params[:person_id] && fetch_person(params[:person_id])
+      @aspect = :profile
+      @contact = current_user.contact_for(@person)
+      if @contact
+        @aspects_with_person = @contact.aspects.load
+        @aspect_ids = @aspects_with_person.map(&:id)
+        gon.aspect_ids = @aspect_ids
+        render layout: nil
+      else
+        @aspects_with_person = []
+      end
+    elsif request.format == :mobile
+      @aspect = :all
+      @aspects = current_user.aspects.load
+      @aspect_ids = @aspects.map(&:id)
+      gon.aspect_ids = @aspect_ids
+    else
+      redirect_to stream_path
+    end
+  end
+
+  def message
+  end
+
   # return the (relative) url to the user profile page.
   # uses the 'person_path' url helper from the rails routes
   def profile_url

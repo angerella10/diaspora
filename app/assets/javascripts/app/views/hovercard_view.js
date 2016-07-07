@@ -1,11 +1,27 @@
 // @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3-or-Later
 
 app.views.Hovercard = app.views.Base.extend({
+  triggerChar: "@",
+  invisibleChar: "\u200B", // zero width space
+  mentionRegex: /@([^@\s]+)$/,
+
+
   templateName: 'hovercard',
   id: 'hovercard_container',
 
+  templates: {
+    mentionItemSyntax: _.template("@{<%= name %> ; <%= handle %>}"),
+    mentionItemHighlight: _.template("<strong><span><%= name %></span></strong>")
+  },
+
   events: {
-    'mouseleave': '_mouseleaveHandler'
+    'mouseleave': '_mouseleaveHandler',
+    "click #mention_button": "showMentionModal",
+    "click #message_button": "showMessageModal",
+    "keydown #status_message_fake_text": "onInputBoxKeyDown",
+    "input #status_message_fake_text": "onInputBoxInput",
+    "click #status_message_fake_text": "onInputBoxClick",
+    "blur #status_message_fake_text": "onInputBoxBlur",
   },
 
   initialize: function() {
@@ -25,6 +41,8 @@ app.views.Hovercard = app.views.Base.extend({
     this.hashtags = this.$('.hashtags');
     this.person_link = this.$('a.person');
     this.person_handle = this.$('div.handle');
+    this.person_mention_link = this.$("a.mention");
+    this.person_message_link = this.$("a.message");
     this.active = true;
   },
 
@@ -119,6 +137,7 @@ app.views.Hovercard = app.views.Base.extend({
     this.person_link.attr('href', person.url);
     this.person_link.text(person.name);
     this.person_handle.text(person.handle);
+  
 
     // set hashtags
     this.hashtags.empty();
@@ -135,6 +154,14 @@ app.views.Hovercard = app.views.Base.extend({
       self.dropdown_container.html(response);
     });
     new app.views.AspectMembership({el: self.dropdown_container});
+  },
+
+  showMentionModal: function(){
+    app.helpers.showModal("#mentionModal");
+  },
+
+  showMessageModal: function(){
+    app.helpers.showModal("#conversationModal");
   },
 
   _positionHovercard: function() {
@@ -154,6 +181,19 @@ app.views.Hovercard = app.views.Base.extend({
       event.pageX <= elPos.left + element.width() &&
       event.pageY >= elPos.top &&
       event.pageY <= elPos.top + element.height();
+  },
+
+// dagdag
+  prefillMention: function(persons) {
+    persons.forEach(function(person) {
+      this.addPersonToMentions(person);
+      var text = this.invisibleChar + person.name;
+      if(this.inputBox.val().length !== 0) {
+        text = this.inputBox.val() + " " + text;
+      }
+      this.inputBox.val(text);
+      this.updateMessageTexts();
+    }, this);
   },
 });
 // @license-end

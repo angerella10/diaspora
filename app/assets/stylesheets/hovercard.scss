@@ -7,6 +7,8 @@
   min-width: 250px;
   max-width: 400px;
 
+  
+
   background-color: $background-white;
   border: 1px solid $border-dark-grey;
   font-size: small;
@@ -23,6 +25,22 @@
       left: 0;
     }
   }
+
+  .mention {
+    font-size: 20px;
+    color: $text-grey;
+    position: relative;
+    float: right;
+    text-decoration: none;
+  }
+
+  .message {
+    
+    position: relative;
+    float: right;
+    entypo-check { color: darken($brand-success,20%); }
+  }
+
 
   $image_width: 80px; /* including margin */
 
@@ -58,6 +76,13 @@
     }
   }
 
+  td {
+    margin-right: 50px;
+    padding: 0px {
+      right: 10px;
+    };
+  }
+
   .handle {
     color: $text-grey;
     line-height: 18px;
@@ -80,4 +105,8 @@
   padding: 10px {
     top: 5px;
   }
+}
+
+div {
+  
 }

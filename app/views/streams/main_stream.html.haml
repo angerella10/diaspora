@@ -20,6 +20,20 @@
           .pull-right
             = link_to '&times;'.html_safe, getting_started_completed_path, id: "gs-skip-x", class: "close"
 
+-if user_signed_in? && @person
+  #new_status_message_pane
+    = render 'shared/modal',
+      path: new_status_message_path(:person_id => @person.id),
+      title: t('status_messages.new.mentioning', person: @person.name),
+      id: 'mentionModal'
+
+  -if @contact
+    #new_conversation_pane
+      = render 'shared/modal',
+        path: new_conversation_path(:contact_id => @contact.id, name: @contact.person.name, modal: true),
+        title: t('conversations.index.new_conversation'),
+        id: 'conversationModal'
+
 .container-fluid
   .row
     .col-md-3
@@ -159,3 +173,33 @@
         = render "aspects/aspect_stream", stream: @stream
 
       %a.entypo-chevron-up.back-to-top#back-to-top{title: "#{t('layouts.application.back_to_top')}", href: "#"}
+
+-if user_signed_in? && @person
+  #new_status_message_pane
+    = render 'shared/modal',
+      path: new_status_message_path(:person_id => @person.id),
+      title: t('status_messages.new.mentioning', person: @person.name),
+      id: 'mentionModal'
+
+  -if @contact
+    #new_conversation_pane
+      = render 'shared/modal',
+        path: new_conversation_path(:contact_id => @contact.id, name: @contact.person.name, modal: true),
+        title: t('conversations.index.new_conversation'),
+        id: 'conversationModal'
+       
+
+:javascript
+  $(function() {
+    app.publisher = new app.views.Publisher({
+      standalone: true,
+      prefillMention: #{json_escape @person.to_json}
+    });
+    app.publisher.open();
+    $("#publisher").bind('ajax:success', function(){
+      $("#mentionModal").modal('hide');
+      app.publisher.clear();
+      location.reload();
+    });
+  });
+
