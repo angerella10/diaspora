@@ -27,18 +27,26 @@
   }
 
   .mention {
-    font-size: 20px;
+    font-size: 17px;
     color: $text-grey;
     position: relative;
-    float: right;
     text-decoration: none;
+    color: lighten($black,75%);
+    &:hover { color: $black; }
   }
 
   .message {
-    
     position: relative;
-    float: right;
-    entypo-check { color: darken($brand-success,20%); }
+    text-decoration: none;
+    cursor: pointer;
+    margin-right: 0px;
+    margin-bottom: 5px;
+    .profile-header-icon {
+      font-size: 17px;
+      line-height: 30px;
+      color: lighten($black,75%);
+      &:hover { color: $black; }
+    }
   }
 
 

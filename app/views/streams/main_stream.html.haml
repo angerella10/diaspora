@@ -189,17 +189,3 @@
         id: 'conversationModal'
        
 
-:javascript
-  $(function() {
-    app.publisher = new app.views.Publisher({
-      standalone: true,
-      prefillMention: #{json_escape @person.to_json}
-    });
-    app.publisher.open();
-    $("#publisher").bind('ajax:success', function(){
-      $("#mentionModal").modal('hide');
-      app.publisher.clear();
-      location.reload();
-    });
-  });
-
