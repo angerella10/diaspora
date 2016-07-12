@@ -16,6 +16,7 @@ app.views.Hovercard = app.views.Base.extend({
 
   events: {
     'mouseleave': '_mouseleaveHandler',
+    'mouseenter': '_mouseenterHandler',
     "click #mention_button": "showMentionModal",
     "click #message_button": "showMessageModal",
     "keydown #status_message_fake_text": "onInputBoxKeyDown",
@@ -29,7 +30,13 @@ app.views.Hovercard = app.views.Base.extend({
 
     $(document)
       .on('mouseenter', '.hovercardable', _.bind(this._mouseenterHandler, this))
-      .on('mouseleave', '.hovercardable', _.bind(this._mouseleaveHandler, this));
+      .on('mouseleave', '.hovercardable', _.bind(this._mouseleaveHandler, this))
+      .on('click', '#mention_button', function() {
+        $('#hovercard_container').fadeOut('fast');
+      })
+      .on('click', '#message_button', function() {
+        $('#hovercard_container').fadeOut('fast');
+      });
 
     this.showMe = false;
     this.parent = null;  // current 'hovercardable' element that caused HC to appear
@@ -41,8 +48,8 @@ app.views.Hovercard = app.views.Base.extend({
     this.hashtags = this.$('.hashtags');
     this.person_link = this.$('a.person');
     this.person_handle = this.$('div.handle');
-    this.person_mention_link = this.$("a.mention");
-    this.person_message_link = this.$("a.message");
+    // this.person_mention_link = this.$("a.mention");
+    // this.person_message_link = this.$("a.message");
     this.active = true;
   },
 
@@ -119,7 +126,7 @@ app.views.Hovercard = app.views.Base.extend({
       if( !person || person.length === 0 ) {
         throw new Error("received data is not a person object");
       }
-
+      window.sss=person;
       self._populateHovercardWith(person);
       if( !self.showMe ) {
         // mouse has left element
@@ -137,6 +144,8 @@ app.views.Hovercard = app.views.Base.extend({
     this.person_link.attr('href', person.url);
     this.person_link.text(person.name);
     this.person_handle.text(person.handle);
+    // this.person_mention.attr();
+    // this.person_messgae.attr();
   
 
     // set hashtags
@@ -181,19 +190,6 @@ app.views.Hovercard = app.views.Base.extend({
       event.pageX <= elPos.left + element.width() &&
       event.pageY >= elPos.top &&
       event.pageY <= elPos.top + element.height();
-  },
-
-// dagdag
-  prefillMention: function(persons) {
-    persons.forEach(function(person) {
-      this.addPersonToMentions(person);
-      var text = this.invisibleChar + person.name;
-      if(this.inputBox.val().length !== 0) {
-        text = this.inputBox.val() + " " + text;
-      }
-      this.inputBox.val(text);
-      this.updateMessageTexts();
-    }, this);
   },
 });
 // @license-end

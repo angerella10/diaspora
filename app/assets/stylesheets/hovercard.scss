@@ -26,8 +26,14 @@
     }
   }
 
+  ul  li {
+    display: inline-block;
+    vertical-align : bottom;
+  }
+
   .mention {
-    font-size: 17px;
+    font-size: 18px;
+    cursor: pointer;
     color: $text-grey;
     position: relative;
     text-decoration: none;
@@ -42,7 +48,7 @@
     margin-right: 0px;
     margin-bottom: 5px;
     .profile-header-icon {
-      font-size: 17px;
+      font-size: 18px;
       line-height: 30px;
       color: lighten($black,75%);
       &:hover { color: $black; }
@@ -70,7 +76,7 @@
   }
 
   padding: 5px {
-    bottom: 25px;
+    bottom: 19px;
   };
 
   h4 {
@@ -82,13 +88,6 @@
       color: $blue;
       font-weight: bold !important;
     }
-  }
-
-  td {
-    margin-right: 50px;
-    padding: 0px {
-      right: 10px;
-    };
   }
 
   .handle {
@@ -113,8 +112,4 @@
   padding: 10px {
     top: 5px;
   }
-}
-
-div {
-  
 }

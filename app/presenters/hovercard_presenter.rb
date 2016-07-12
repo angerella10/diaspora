@@ -16,8 +16,9 @@ class HovercardPresenter
        :avatar => avatar('medium'),
        :url => profile_url,
        :name => person.name,
-       :handle => person.diaspora_handle,
-       :tags => person.tags.map { |t| "#"+t.name }
+       :handle => person.diaspora_handle
+       # :mention =>
+       # :message =>
     }.to_json(options)
   end
 
