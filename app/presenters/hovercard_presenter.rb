@@ -1,5 +1,4 @@
 class HovercardPresenter
-
   attr_accessor :person, :contact
 
   # initialize the presenter with the given Person object
@@ -14,25 +13,23 @@ class HovercardPresenter
   # hovercard UI
   def to_json(options={})
     result = {
-      :id => person.id,
-      :avatar => avatar('medium'),
-      :url => profile_url,
-      :status_url => Rails.application.routes.url_helpers.new_person_status_message_path(:person_id => person.id),
-      :name => person.name,
-      :handle => person.diaspora_handle,
-      :title => I18n.t('status_messages.new.mentioning', person: person.name),
-      :tags => person.tags.map { |t| "#"+t.name },
+      id:         person.id,
+      avatar:     avatar("medium"),
+      url:        profile_url,
+      status_url: Rails.application.routes.url_helpers.new_person_status_message_path(person_id: person.id),
+      name:       person.name,
+      handle:     person.diaspora_handle,
+      title:      I18n.t("status_messages.new.mentioning", person: person.name),
+      tags:       person.tags.map {|t| "#" + t.name }
     }
-    result.merge!(message_url: message_url) if  message_url
-    return result.to_json(options)
+    result[:message_url] = message_url if message_url
+    result.to_json(options)
   end
 
   # get the image url of the profile avatar for the given size
-  # possible sizes: 'small', 'medium', 'large'    
+  # possible sizes: 'small', 'medium', 'large'
   def avatar(size="medium")
-    if !["small", "medium", "large"].include?(size)
-      raise ArgumentError, "the given parameter is not a valid size"
-    end
+    raise ArgumentError, "the given parameter is not a valid size" unless %w[small medium large].include?(size)
 
     person.image_url("thumb_#{size}".to_sym)
   end
@@ -44,12 +41,8 @@ class HovercardPresenter
   end
 
   def message_url
-
     if false
-      Rails.application.routes.url_helpers.new_conversation_path(:contact_id => @contact.id, name: @contact.person.name, modal: true)
-    else
-      return nil
+      Rails.application.routes.url_helpers.new_conversation_path(contact_id: @contact.id, name: @contact.person.name, modal: true)
     end
-
   end
 end

@@ -4,7 +4,7 @@
 
 class StreamsController < ApplicationController
   before_action :authenticate_user!
-  before_action :save_selected_aspects, :only => :aspects
+  before_action :save_selected_aspects, only: :aspects
 
   layout proc { request.format == :mobile ? "application" : "with_header" }
 
@@ -20,7 +20,7 @@ class StreamsController < ApplicationController
   def aspects
     aspect_ids = (session[:a_ids] || [])
     @stream = Stream::Aspect.new(current_user, aspect_ids,
-                                 :max_time => max_time)
+                                 max_time: max_time)
     stream_responder
   end
 
@@ -33,7 +33,7 @@ class StreamsController < ApplicationController
   end
 
   def multi
-      stream_responder(Stream::Multi)
+    stream_responder(Stream::Multi)
   end
 
   def commented
@@ -53,30 +53,23 @@ class StreamsController < ApplicationController
     stream_responder(Stream::FollowedTag)
   end
 
-  def mention
-  end
+  def mention; end
 
-  def message
-  end
+  def message; end
 
   private
 
   def stream_responder(stream_klass=nil)
-
-    if stream_klass.present?
-      @stream ||= stream_klass.new(current_user, :max_time => max_time)
-    end
+    @stream ||= stream_klass.new(current_user, max_time: max_time) if stream_klass.present?
 
     respond_with do |format|
-      format.html { render 'streams/main_stream' }
-      format.mobile { render 'streams/main_stream' }
-      format.json { render :json => @stream.stream_posts.map {|p| LastThreeCommentsDecorator.new(PostPresenter.new(p, current_user)) }}
+      format.html { render "streams/main_stream" }
+      format.mobile { render "streams/main_stream" }
+      format.json { render json: @stream.stream_posts.map {|p| LastThreeCommentsDecorator.new(PostPresenter.new(p, current_user)) } }
     end
   end
 
   def save_selected_aspects
-    if params[:a_ids].present?
-      session[:a_ids] = params[:a_ids]
-    end
+    session[:a_ids] = params[:a_ids] if params[:a_ids].present?
   end
 end
