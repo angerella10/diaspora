@@ -3,21 +3,21 @@
 #   the COPYRIGHT file.
 
 class PeopleController < ApplicationController
-  before_action :authenticate_user!, except: %i(show stream hovercard)
-  before_action :find_person, only: %i(show stream hovercard)
+  before_action :authenticate_user!, except: %i[show stream hovercard]
+  before_action :find_person, only: %i[show stream hovercard]
 
   respond_to :html
-  respond_to :json, :only => [:index, :show]
+  respond_to :json, only: %i[index show]
 
   rescue_from ActiveRecord::RecordNotFound do
-    render :file => Rails.root.join('public', '404').to_s,
-           :format => :html, :layout => false, :status => 404
+    render file: Rails.root.join("public", "404").to_s,
+           format: :html, layout: false, status: 404
   end
 
   rescue_from Diaspora::AccountClosed do
     respond_to do |format|
-      format.any { redirect_to :back, :notice => t("people.show.closed_account") }
-      format.json { render :nothing => true, :status => 410 } # 410 GONE
+      format.any { redirect_to :back, notice: t("people.show.closed_account") }
+      format.json { render nothing: true, status: :gone } # 410 GONE
     end
   end
 
@@ -32,19 +32,19 @@ class PeopleController < ApplicationController
     respond_to do |format|
       format.json do
         @people = @people.limit(limit)
-        render :json => @people
+        render json: @people
       end
 
       format.any(:html, :mobile) do
-        #only do it if it is an email address
+        # only do it if it is an email address
         if diaspora_id?(search_query)
-          @people =  Person.where(:diaspora_handle => search_query.downcase)
+          @people = Person.where(diaspora_handle: search_query.downcase)
           if @people.empty?
             Workers::FetchWebfinger.perform_async(search_query)
             @background_query = search_query.downcase
           end
         end
-        @people = @people.paginate(:page => params[:page], :per_page => 15)
+        @people = @people.paginate(page: params[:page], per_page: 15)
         @hashes = hashes_for_people(@people, @aspects)
       end
     end
@@ -52,15 +52,15 @@ class PeopleController < ApplicationController
 
   def refresh_search
     @aspect = :search
-    @people =  Person.where(:diaspora_handle => search_query.downcase)
+    @people = Person.where(diaspora_handle: search_query.downcase)
     @answer_html = ""
     unless @people.empty?
       @hashes = hashes_for_people(@people, @aspects)
 
-      self.formats = self.formats + [:html]
-      @answer_html = render_to_string :partial => 'people/person', :locals => @hashes.first
+      self.formats = formats + [:html]
+      @answer_html = render_to_string partial: "people/person", locals: @hashes.first
     end
-    render :json => { :search_count => @people.count, :search_html => @answer_html }.to_json
+    render json: {search_count: @people.count, search_html: @answer_html}.to_json
   end
 
   # renders the persons user profile page
@@ -71,15 +71,13 @@ class PeopleController < ApplicationController
 
     respond_to do |format|
       format.all do
-        if user_signed_in?
-          @contact = current_user.contact_for(@person)
-        end
+        @contact = current_user.contact_for(@person) if user_signed_in?
         gon.preloads[:person] = @person_json
         gon.preloads[:photos] = {
           count: Photo.visible(current_user, @person).count(:all)
         }
         gon.preloads[:contacts] = {
-          count: Contact.contact_contacts_for(current_user, @person).count(:all),
+          count: Contact.contact_contacts_for(current_user, @person).count(:all)
         }
         respond_with @person, layout: "with_header"
       end
@@ -98,7 +96,7 @@ class PeopleController < ApplicationController
     respond_to do |format|
       format.all { redirect_to person_path(@person) }
       format.json {
-        render json: person_stream.stream_posts.map { |p| LastThreeCommentsDecorator.new(PostPresenter.new(p, current_user)) }
+        render json: person_stream.stream_posts.map {|p| LastThreeCommentsDecorator.new(PostPresenter.new(p, current_user)) }
       }
     end
   end
@@ -108,11 +106,11 @@ class PeopleController < ApplicationController
   def hovercard
     respond_to do |format|
       format.all do
-        redirect_to :action => "show", :id => params[:person_id]
+        redirect_to action: "show", id: params[:person_id]
       end
 
       format.json do
-        render :json => HovercardPresenter.new(@person, current_user)
+        render json: HovercardPresenter.new(@person, current_user)
       end
     end
   end
@@ -120,18 +118,18 @@ class PeopleController < ApplicationController
   def retrieve_remote
     if params[:diaspora_handle]
       Workers::FetchWebfinger.perform_async(params[:diaspora_handle])
-      render :nothing => true
+      render nothing: true
     else
-      render :nothing => true, :status => 422
+      render nothing: true, status: :unprocessable_entity
     end
   end
 
   def contacts
     respond_to do |format|
-      format.json { render nothing: true, status: 406 }
+      format.json { render nothing: true, status: :not_acceptable }
 
       format.any do
-        @person = Person.find_by_guid(params[:person_id])
+        @person = Person.find_by(guid: params[:person_id])
 
         if @person
           @contact = current_user.contact_for(@person)
@@ -141,7 +139,7 @@ class PeopleController < ApplicationController
             count: Photo.visible(current_user, @person).count(:all)
           }
           gon.preloads[:contacts] = {
-            count: @contacts_of_contact.count(:all),
+            count: @contacts_of_contact.count(:all)
           }
           @contacts_of_contact = @contacts_of_contact.paginate(page: params[:page], per_page: (params[:limit] || 15))
           @hashes = hashes_for_people @contacts_of_contact, @aspects
@@ -157,37 +155,35 @@ class PeopleController < ApplicationController
   # shows the dropdown list of aspects the current user has set for the given person.
   # renders "thats you" in case the current user views himself
   def aspect_membership_dropdown
-    @person = Person.find_by_guid(params[:person_id])
+    @person = Person.find_by(guid: params[:person_id])
 
     # you are not a contact of yourself...
-    return render :text => I18n.t('people.person.thats_you') if @person == current_user.person
+    return render text: I18n.t("people.person.thats_you") if @person == current_user.person
 
     @contact = current_user.contact_for(@person) || Contact.new
-    @aspect = :profile if params[:create]  # let aspect dropdown create new aspects
+    @aspect = :profile if params[:create] # let aspect dropdown create new aspects
     size = params[:size] || "small"
 
-    render :partial => 'aspect_membership_dropdown', :locals => {:contact => @contact, :person => @person, :hang => 'left', :size => size}
+    render partial: "aspect_membership_dropdown", locals: {contact: @contact, person: @person, hang: "left", size: size}
   end
 
-  def mention
-  end
+  def mention; end
 
-  def message
-  end
+  def message; end
 
   private
 
   def find_person
     username = params[:username]
     @person = if diaspora_id?(username)
-        Person.where({
-          diaspora_handle: username.downcase
-        }).first
-      else
-        Person.find_from_guid_or_username({
-          id: params[:id] || params[:person_id],
-          username: username
-        })
+                Person.where(
+                  diaspora_handle: username.downcase
+                ).first
+              else
+                Person.find_from_guid_or_username(
+                  id:       params[:id] || params[:person_id],
+                  username: username
+                )
       end
 
     # view this profile on the home pod, if you don't want to sign in...
@@ -197,21 +193,21 @@ class PeopleController < ApplicationController
   end
 
   def hashes_for_people(people, aspects)
-    ids = people.map{|p| p.id}
+    ids = people.map(&:id)
     contacts = {}
-    Contact.unscoped.where(:user_id => current_user.id, :person_id => ids).each do |contact|
+    Contact.unscoped.where(user_id: current_user.id, person_id: ids).each do |contact|
       contacts[contact.person_id] = contact
     end
 
-    people.map{|p|
-      {:person => p,
-        :contact => contacts[p.id],
-        :aspects => aspects}
+    people.map {|p|
+      {person:  p,
+       contact: contacts[p.id],
+       aspects: aspects}
     }
   end
 
   def search_query
-    @search_query ||= params[:q] || params[:term] || ''
+    @search_query ||= params[:q] || params[:term] || ""
   end
 
   def diaspora_id?(query)
@@ -224,7 +220,7 @@ class PeopleController < ApplicationController
 
   def mark_corresponding_notifications_read
     Notification.where(recipient_id: current_user.id, target_type: "Person", target_id: @person.id, unread: true).each do |n|
-      n.set_read_state( true )
+      n.set_read_state(true)
     end
   end
 
